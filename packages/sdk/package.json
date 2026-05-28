@@ -1,0 +1,60 @@
+{
+  "name": "@zodiacs/sdk",
+  "version": "0.1.0",
+  "description": "Read-only TypeScript SDK for Zodiacs.org cultural assets, symbolic identity, ownership, and market context.",
+  "license": "MIT",
+  "keywords": [
+    "zodiacs",
+    "sdk",
+    "cultural-assets",
+    "symbolic-identity",
+    "ownership",
+    "market-context",
+    "solana",
+    "react",
+    "typescript",
+    "read-only"
+  ],
+  "homepage": "https://zodiacs.org/sdk",
+  "bugs": {
+    "url": "https://github.com/zodiacs-org/sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zodiacs-org/sdk.git"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.build.json --external react --external react/jsx-runtime --external @solana/web3.js",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run src/**/*.test.ts src/**/*.test.tsx"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
