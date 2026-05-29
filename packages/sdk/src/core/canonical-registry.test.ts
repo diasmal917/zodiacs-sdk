@@ -52,7 +52,6 @@ describe("canonical Zodiacs registry", () => {
         bridge: {
           status: "official-bridged",
           protocol: "wormhole",
-          routeProvider: "symbiosis",
           sourceChain: "solana",
           destinationChain: "base"
         }

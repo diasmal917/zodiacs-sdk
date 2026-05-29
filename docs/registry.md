@@ -14,6 +14,10 @@ The registry does not claim ownership over astrology, zodiac signs, or zodiac
 glyphs. It identifies the official Zodiacs.org representations so apps can
 verify addresses and render official cultural asset metadata safely.
 
+Always verify official addresses against the published Zodiacs.org registry.
+The SDK exposes the official registry for apps and clients, but downstream
+interfaces should display chain and representation provenance clearly.
+
 Machine-readable artifact:
 
 ```txt

@@ -17,6 +17,10 @@ The registry models the twelve signs as one canonical asset universe:
 - one official bridged Base ERC-20 representation per sign
 - provenance from every Base representation back to its Solana origin
 
+Always verify official addresses against the published Zodiacs.org registry.
+The SDK exposes the official registry for apps and clients, but downstream
+interfaces should display chain and representation provenance clearly.
+
 Machine-readable registry artifact:
 
 ```txt

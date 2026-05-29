@@ -31,7 +31,7 @@ The workspace is managed with pnpm through `pnpm-workspace.yaml`.
 - Solana SPL mints are native canonical origins.
 - Base ERC-20 addresses are official bridged representations.
 - Base representations are not independent originals.
-- Every Base representation includes Wormhole / Symbiosis bridge metadata and an `originAddress` matching the native Solana mint.
+- Every Base representation includes Wormhole bridge metadata and an `originAddress` matching the native Solana mint.
 - Unknown addresses return `false` or `null`; assertion helpers throw typed errors.
 - EVM lookup is case-insensitive.
 

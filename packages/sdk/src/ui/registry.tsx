@@ -55,8 +55,7 @@ export function ZodiacBridgeProvenance({ representation }: { readonly representa
   return (
     <p style={mutedTextStyle}>
       Bridged from {representation.bridge.sourceChain} to {representation.bridge.destinationChain}
-      {representation.bridge.protocol ? ` through ${representation.bridge.protocol}` : ""}
-      {representation.bridge.routeProvider ? ` / ${representation.bridge.routeProvider}` : ""}.
+      {representation.bridge.protocol ? ` through ${representation.bridge.protocol}` : ""}.
     </p>
   );
 }

@@ -62,10 +62,9 @@ function createBaseRepresentation(
     bridge: {
       status: "official-bridged",
       protocol: "wormhole",
-      routeProvider: "symbiosis",
       sourceChain: "solana",
       destinationChain: "base",
-      notes: "Official bridged Base representation of the native Solana SPL asset."
+      notes: "Official bridged Base representation deployed through Wormhole BridgeToken contracts."
     }
   };
 }

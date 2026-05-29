@@ -19,6 +19,10 @@ errors for flows that require a hard failure.
 EVM address lookup is case-insensitive. Solana mint lookup preserves the
 existing Solana address string.
 
+Always verify official addresses against the published Zodiacs.org registry.
+The SDK exposes the official registry for apps and clients, but downstream
+interfaces should display chain and representation provenance clearly.
+
 Neutral labels:
 
 - Official native Zodiacs.org asset on Solana

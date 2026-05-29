@@ -28,7 +28,6 @@ export type ZodiacTokenStandard = "SPL" | "ERC20";
 export interface ZodiacBridgeMetadata {
   readonly status: "official-bridged";
   readonly protocol?: "wormhole";
-  readonly routeProvider?: "symbiosis";
   readonly sourceChain: "solana";
   readonly destinationChain: "base";
   readonly notes?: string;

@@ -28,3 +28,7 @@ The SDK is read-only. It provides registry verification, public balance reads,
 metadata, React hooks, and UI components. It does not request private keys,
 sign messages, submit transactions, provide custody, or provide transaction
 approval helpers.
+
+Always verify official addresses against the published Zodiacs.org registry.
+The SDK exposes the official registry for apps and clients, but downstream
+interfaces should display chain and representation provenance clearly.
