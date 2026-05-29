@@ -15,6 +15,49 @@ export {
   validateZodiacRegistry
 } from "./registry.js";
 export {
+  BASE_BRIDGED_ZODIAC_ADDRESSES,
+  BASE_CHAIN_ID,
+  ZODIACS_REGISTRY,
+  ZODIACS_REGISTRY_VERSION,
+  getAllBaseBridgedZodiacs,
+  getAllOfficialRepresentations,
+  getAllSolanaNativeZodiacs,
+  getAllZodiacAssets,
+  getBaseZodiacRepresentation,
+  getCanonicalZodiacsRegistry,
+  getNativeZodiacRepresentation,
+  getRegistryVersion,
+  getSolanaZodiacRepresentation,
+  getZodiacAsset,
+  getZodiacRepresentation,
+  getZodiacRepresentations,
+  getZodiacsRegistry
+} from "./official-registry.js";
+export {
+  assertOfficialZodiacAddress,
+  getBridgeProvenance,
+  getBridgedCounterpart,
+  getCounterparts,
+  getNativeCounterpart,
+  getOriginForRepresentation,
+  getRepresentationByAddress,
+  getZodiacAssetByAddress,
+  getZodiacProvenance,
+  getZodiacSignByAddress,
+  isBridgedZodiacAddress,
+  isNativeZodiacAddress,
+  isOfficialBaseZodiacAddress,
+  isOfficialSolanaZodiacMint,
+  isOfficialZodiacAddress,
+  isOfficialZodiacRepresentation
+} from "./verification.js";
+export {
+  isEvmAddress,
+  isSolanaAddressLike,
+  normalizeEvmAddress,
+  normalizeZodiacAddress
+} from "./address.js";
+export {
   formatCompactNumber,
   formatCurrency,
   formatPercentChange,
@@ -29,11 +72,46 @@ export {
 export {
   createReadonlySolanaBalanceReader,
   createSolanaConnection,
+  getSolanaHeldZodiacs,
+  getSolanaZodiacBalance,
+  getSolanaZodiacBalances,
+  getSolanaZodiacsOwnership,
   getZodiacsOwnership,
   getHeldZodiacs,
   getZodiacBalance
 } from "./solana.js";
 export {
+  getBaseHeldZodiacs,
+  getBaseZodiacBalance,
+  getBaseZodiacBalances,
+  getBaseZodiacsOwnership
+} from "./base.js";
+export {
+  getCrossChainZodiacsOwnership,
+  getUnifiedZodiacShelf,
+  getZodiacHoldingsByChain
+} from "./cross-chain.js";
+export {
+  getCosmicReceiptData,
+  getCrossChainZodiacShelf,
+  getElementComposition,
+  getHeldElements,
+  getHeldModalities,
+  getModalityComposition,
+  getNativeAndBridgedSummary,
+  getOwnSignStatus,
+  getTotalHeld,
+  getZodiacShelf,
+  getZodiacWheelState
+} from "./identity.js";
+export {
+  InvalidZodiacAddressError,
+  InvalidZodiacSignError,
+  UnofficialZodiacAddressError,
+  UnsupportedZodiacsChainError,
+  ZodiacReadUnavailableError,
+  ZodiacRegistryIntegrityError,
+  ZodiacsError,
   ZodiacsValidationError
 } from "./errors.js";
 export type {
@@ -56,9 +134,13 @@ export type {
   ReadZodiacsBalancesOptions,
   ReadonlyZodiacBalanceReader,
   ReadZodiacBalanceOptions,
+  BaseZodiacBalance,
+  BaseZodiacsHolding,
+  BaseZodiacsOwnership,
   ZodiacsOwnership,
   ZodiacsHolding,
   ZodiacsOwnershipStatus,
+  CrossChainZodiacsOwnership,
   ConnectionOrRpcUrl,
   ParsedTokenAccountAmount,
   ParsedTokenAccountResponse,
@@ -70,12 +152,31 @@ export type {
   ZodiacBalanceResult,
   ZodiacBalanceStatus,
   ZodiacDateRange,
+  ZodiacAsset,
+  ZodiacAssetMetadata,
+  ZodiacBridgeMetadata,
+  ZodiacChain,
   ZodiacElement,
   ZodiacMetadata,
   ZodiacModality,
+  ZodiacRepresentation,
+  ZodiacRepresentationKind,
+  ZodiacSerializableError,
   ZodiacRegistryValidationResult,
   ZodiacSign,
   ZodiacMarketLinks,
+  ZodiacTokenStandard,
   ZodiacToken,
-  ZodiacTokenRegistry
+  ZodiacTokenRegistry,
+  ZodiacsRegistry,
+  ZodiacsSupportedChain,
+  UnifiedZodiacShelf,
+  UnifiedZodiacShelfItem
 } from "./types.js";
+export type {
+  ZodiacAddressLookupOptions
+} from "./verification.js";
+export type {
+  ZodiacHoldingsByChain,
+  ZodiacHoldingsByChainParams
+} from "./cross-chain.js";

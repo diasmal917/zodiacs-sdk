@@ -42,13 +42,20 @@ export function formatTokenAmount(
   decimals: number,
   options: FormatTokenAmountOptions = {}
 ): string {
-  const locale = options.locale ?? "en-US";
-  const decimalValue = rawAmountToNumber(amountRaw, decimals);
+  const raw = normalizeRawAmountString(amountRaw);
+  assertDecimals(decimals);
+  const maximumFractionDigits = options.maximumFractionDigits ?? decimals;
+  const minimumFractionDigits = options.minimumFractionDigits ?? 0;
+  const padded = raw.padStart(decimals + 1, "0");
+  const whole = decimals === 0 ? padded : padded.slice(0, -decimals);
+  const fractional = decimals === 0 ? "" : padded.slice(-decimals);
+  const trimmedFractional = fractional.slice(0, maximumFractionDigits).replace(/0+$/u, "");
+  const displayFractional = trimmedFractional.padEnd(
+    Math.min(Math.max(minimumFractionDigits, trimmedFractional.length), maximumFractionDigits),
+    "0"
+  );
 
-  return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: options.maximumFractionDigits ?? 6,
-    minimumFractionDigits: options.minimumFractionDigits ?? 0
-  }).format(decimalValue);
+  return displayFractional ? `${whole}.${displayFractional}` : whole;
 }
 
 export function formatZodiacBalance(
@@ -72,15 +79,24 @@ export function formatZodiacBalance(
 }
 
 export function rawAmountToNumber(amountRaw: string | number | bigint, decimals: number): number {
+  const raw = normalizeRawAmountString(amountRaw);
+  assertDecimals(decimals);
+
+  return Number(raw) / 10 ** decimals;
+}
+
+function normalizeRawAmountString(amountRaw: string | number | bigint): string {
   const raw = typeof amountRaw === "bigint" ? amountRaw.toString() : String(amountRaw);
 
   if (!/^\d+$/u.test(raw)) {
     throw new Error(`Token amount must be an unsigned integer string: ${raw}`);
   }
 
+  return raw;
+}
+
+function assertDecimals(decimals: number): void {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 18) {
     throw new Error(`Token decimals must be an integer from 0 to 18: ${decimals}`);
   }
-
-  return Number(raw) / 10 ** decimals;
 }

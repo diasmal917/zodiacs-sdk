@@ -1,26 +1,30 @@
-# @zodiacs/sdk
+# Zodiacs SDK
 
-Read-only TypeScript SDK for Zodiacs.org cultural assets, symbolic identity, ownership, and optional market context.
+Official read-only TypeScript SDK for the canonical Zodiacs.org registry,
+native Solana SPL Zodiacs assets, and official bridged Base ERC-20
+representations.
 
 ```sh
 pnpm add @zodiacs/sdk
 ```
 
-```tsx
+```ts
 import {
-  ZodiacsProvider,
-  ZodiacAssetCard,
-  getZodiacBalance
+  getRepresentationByAddress,
+  getSolanaZodiacRepresentation,
+  getBaseZodiacRepresentation
 } from "@zodiacs/sdk";
 
-export function App() {
-  return (
-    <ZodiacsProvider rpcUrl="https://api.mainnet-beta.solana.com">
-      <ZodiacAssetCard sign="aries" />
-    </ZodiacsProvider>
-  );
-}
+const representation = getRepresentationByAddress(
+  "0x3ffB5282F5891Dd8c813E64059EdB0607537eC91"
+);
+
+console.log(representation?.kind); // "bridged"
+console.log(getSolanaZodiacRepresentation("aries").chain); // "solana"
+console.log(getBaseZodiacRepresentation("aries").originChain); // "solana"
 ```
 
-The SDK is read-only. It does not include signing, swaps, trading, custody, private keys, buy buttons, sell buttons, or transaction submission.
-Market adapters are optional display context. DEX Screener and Jupiter endpoints are upstream-controlled and can be overridden with `config.endpoint`.
+The SDK is read-only. It provides registry verification, public balance reads,
+metadata, React hooks, and UI components. It does not request private keys,
+sign messages, submit transactions, provide custody, or provide transaction
+approval helpers.

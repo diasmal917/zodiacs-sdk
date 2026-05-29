@@ -1,160 +1,205 @@
 # Zodiacs SDK
 
-Read-only TypeScript SDK for integrating Zodiacs.org cultural assets into
-astrology, identity, and ownership applications.
+Zodiacs SDK is the official read-only TypeScript interface for the canonical
+Zodiacs.org registry. The native Zodiacs assets are SPL tokens on Solana. The
+SDK also recognizes official bridged ERC-20 representations on Base, created to
+make the original Solana Zodiacs accessible in Coinbase's Base ecosystem.
 
-The MVP provides a typed token registry, metadata helpers, React hooks,
-HTML-based UI components, and optional market context. It is built around
-symbolic identity, scarcity, ownership, and symbolic endurance.
+Apps can use the SDK to verify official Zodiacs addresses, read public
+ownership state, render sign metadata, and build cultural identity interfaces.
 
-## Package
+## Official Zodiacs.org Registry
 
-- `@zodiacs/sdk`
+The registry models the twelve signs as one canonical asset universe:
 
-## Commands
+- one asset identity per sign
+- one native Solana SPL mint per sign
+- one official bridged Base ERC-20 representation per sign
+- provenance from every Base representation back to its Solana origin
 
-```sh
-corepack pnpm install
-corepack pnpm build
-corepack pnpm test
-corepack pnpm typecheck
+Machine-readable registry artifact:
+
+```txt
+packages/sdk/registry/zodiacs.registry.json
 ```
 
-## Read-Only Solana Usage
+## Install
 
-The SDK reads SPL token balances for the twelve local Zodiacs mint addresses.
-It does not request private keys, sign messages, execute swaps, execute trades,
-submit transactions, or provide custody.
+```sh
+pnpm add @zodiacs/sdk
+```
+
+For Base read-only balance helpers, the SDK uses `viem` public clients. For
+Solana read-only balance helpers, it uses `@solana/web3.js` connections.
+
+## Verify an Address
 
 ```ts
 import {
-  getZodiacsOwnership,
-  getHeldZodiacs,
-  getZodiacBalance
+  getNativeCounterpart,
+  getRepresentationByAddress,
+  isOfficialZodiacAddress
 } from "@zodiacs/sdk";
 
-const rpcUrl = "https://api.mainnet-beta.solana.com";
-const walletAddress = "CWKQJJYec89wcx871C8vmyTPc3jhsdoAYs5aGffUtELJ";
+const address = "0x3ffB5282F5891Dd8c813E64059EdB0607537eC91";
 
-const aries = await getZodiacBalance(rpcUrl, walletAddress, "aries");
+const isOfficial = isOfficialZodiacAddress(address);
+const representation = getRepresentationByAddress(address);
+const native = getNativeCounterpart(address);
 
-const ownership = await getZodiacsOwnership(rpcUrl, walletAddress);
-const heldZodiacs = await getHeldZodiacs(rpcUrl, walletAddress);
+console.log(isOfficial);
+console.log(representation?.kind); // "bridged"
+console.log(native?.chain); // "solana"
 ```
 
-`getZodiacBalance` returns a normalized object:
+Unknown addresses return `false` or `null`. Assertion helpers throw typed
+errors only when an app explicitly asks for assertion behavior.
+
+## Get a Zodiac Asset
 
 ```ts
-if (aries.status === "ok") {
-  console.log(aries.rawAmount);
-  console.log(aries.uiAmountString);
-}
+import {
+  getBaseZodiacRepresentation,
+  getSolanaZodiacRepresentation,
+  getZodiacAsset
+} from "@zodiacs/sdk";
 
-if (aries.status === "zero") {
-  console.log("No Aries token account balance for this wallet.");
-}
+const aries = getZodiacAsset("aries");
+const native = getSolanaZodiacRepresentation("aries");
+const bridged = getBaseZodiacRepresentation("aries");
 
-if (aries.status === "unavailable") {
-  console.log(aries.error.message);
-}
+console.log(aries.displayName);
+console.log(native.address);
+console.log(bridged.originAddress === native.address);
 ```
 
-The balance layer queries token accounts by wallet owner and mint, then sums all
-matching token accounts. RPC failures are returned as typed unavailable balances
-inside the result. Core functions throw only for invalid inputs such as an
-invalid wallet address, zodiac sign, or RPC endpoint.
+## Read Solana Holdings
 
-## React Usage
+```ts
+import { Connection } from "@solana/web3.js";
+import { getSolanaZodiacsOwnership } from "@zodiacs/sdk";
+
+const connection = new Connection("https://api.mainnet-beta.solana.com");
+
+const ownership = await getSolanaZodiacsOwnership(
+  connection,
+  "CWKQJJYec89wcx871C8vmyTPc3jhsdoAYs5aGffUtELJ"
+);
+```
+
+Compatibility aliases remain available:
+
+- `getZodiacBalance`
+- `getZodiacsOwnership`
+- `getHeldZodiacs`
+
+These default to the native Solana representation. New integrations should
+prefer the explicit `getSolana*` names.
+
+## Read Base Holdings
+
+```ts
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
+import { getBaseZodiacsOwnership } from "@zodiacs/sdk";
+
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http()
+});
+
+const ownership = await getBaseZodiacsOwnership(
+  publicClient,
+  "0x1111111111111111111111111111111111111111"
+);
+```
+
+Base helpers use `PublicClient` only. They read ERC-20 `balanceOf` and
+`decimals`; they do not construct transactions or require wallet clients.
+
+## Build a Cross-Chain Zodiac Shelf
+
+```ts
+import {
+  getCrossChainZodiacsOwnership,
+  getUnifiedZodiacShelf
+} from "@zodiacs/sdk";
+
+const ownershipByChain = await getCrossChainZodiacsOwnership({
+  solana: { connection, ownerAddress: "CWKQJJYec89wcx871C8vmyTPc3jhsdoAYs5aGffUtELJ" },
+  base: { publicClient, ownerAddress: "0x1111111111111111111111111111111111111111" }
+});
+
+const shelf = await getUnifiedZodiacShelf({
+  solana: { connection, ownerAddress: "CWKQJJYec89wcx871C8vmyTPc3jhsdoAYs5aGffUtELJ" },
+  base: { publicClient, ownerAddress: "0x1111111111111111111111111111111111111111" }
+});
+
+console.log(shelf.label); // "combined wallet holdings across official representations"
+console.log(ownershipByChain.base?.heldSigns);
+```
+
+Cross-chain helpers expose per-chain holdings first. They do not treat bridged
+Base balances as independent new supply.
+
+## React Components
 
 ```tsx
 import {
-  ZodiacsProvider,
-  useZodiacBalance,
-  useZodiacMarket,
-  useZodiacToken
+  OfficialZodiacBadge,
+  ZodiacAddressVerifier,
+  ZodiacsProvider
 } from "@zodiacs/sdk";
 
-function AriesIdentity({ walletAddress }: { walletAddress: string }) {
-  const { token } = useZodiacToken("aries");
-  const balance = useZodiacBalance("aries", walletAddress);
-  const market = useZodiacMarket("aries");
-
-  return (
-    <section>
-      <h2>{token.name}</h2>
-      <p>{token.shortBio}</p>
-      <p>Ownership: {balance.data?.status ?? "loading"}</p>
-      <p>Market context: {market.data?.status ?? "loading"}</p>
-    </section>
-  );
-}
-
-export function App() {
+export function RegistrySurface() {
   return (
     <ZodiacsProvider rpcUrl="https://api.mainnet-beta.solana.com">
-      <AriesIdentity walletAddress="CWKQJJYec89wcx871C8vmyTPc3jhsdoAYs5aGffUtELJ" />
+      <OfficialZodiacBadge address="0x3ffB5282F5891Dd8c813E64059EdB0607537eC91" />
+      <ZodiacAddressVerifier address="0x3ffB5282F5891Dd8c813E64059EdB0607537eC91" />
     </ZodiacsProvider>
   );
 }
 ```
 
-`useZodiacMarket` uses the placeholder market adapter unless a provider supplies
-another adapter. Missing market context does not prevent metadata or ownership
-surfaces from rendering. `useZodiacBalance` requires either `rpcUrl` on
-`ZodiacsProvider` or a custom read-only `balanceReader`. Invalid wallet input
-and RPC failures are exposed as safe hook state.
+Verifier UI distinguishes:
+
+- Official native Zodiacs.org asset on Solana
+- Official bridged Zodiacs.org asset on Base
+- Not found in the official Zodiacs.org registry
 
 ## Optional Market Context
 
-Market data is optional. Adapters return normalized snapshots when upstream data
-is available, and unavailable snapshots when network, API, or payload failures
-occur. Treat market context as display context only.
-DEX Screener and Jupiter endpoints are upstream-controlled. The default Jupiter
-adapter uses Jupiter Price API V3 through the keyless lite endpoint, and both
-market adapters accept `config.endpoint` when an integration needs to pin or
-replace an upstream URL.
+Market data is optional display context. It is not required by the registry,
+verifier, ownership, or identity helpers. DEX Screener and Jupiter endpoints
+are upstream-controlled; adapters accept `config.endpoint` for integrations
+that need to pin or replace an upstream URL.
 
-```ts
-import {
-  createDexScreenerMarketAdapter,
-  createJupiterMarketAdapter,
-  createPlaceholderMarketAdapter,
-  getZodiacToken,
-  readMarketSafely
-} from "@zodiacs/sdk";
-
-const token = getZodiacToken("aries");
-const placeholder = createPlaceholderMarketAdapter();
-const dexScreener = createDexScreenerMarketAdapter();
-const jupiter = createJupiterMarketAdapter();
-
-const market = await readMarketSafely(dexScreener, {
-  sign: "aries",
-  token
-});
-
-console.log(market.status);
-console.log(market.priceUsd);
-```
-
-`MarketSnapshot` includes `priceUsd`, `marketCap`, `fdv`, `liquidity`,
-`volume24h`, `change24h`, `supply`, `source`, `lastUpdated`, and
-`status: "ok" | "unavailable"`. Unavailable snapshots include an optional
-typed `error`.
-
-## Next.js Example
-
-See [examples/nextjs](./examples/nextjs) for a minimal read-only integration app.
-
-```sh
-NEXT_PUBLIC_SOLANA_RPC_URL="https://api.mainnet-beta.solana.com" corepack pnpm --filter zodiacs-sdk-nextjs-example dev
-```
-
-The example includes a wallet address input, zodiac selector, `ZodiacAssetCard`,
-`ZodiacsPanel`, read-only balance lookup, and placeholder market context.
+Market helpers are representation-aware, so apps can request context for a
+Solana native representation or a Base bridged representation without implying
+one universal cross-chain price.
 
 ## Security Posture
 
-Zodiacs SDK v0.1.0 is read-only. It does not include signing, swaps, trading,
-custody, private keys, buy buttons, sell buttons, or financial-promotional
+Zodiacs SDK is read-only infrastructure. It does not request private keys, sign
+messages, connect wallets, submit transactions, provide custody, or provide
+transaction approval helpers.
+
+The package is intended for verification, public balance reads, metadata, and
+identity surfaces.
+
+## What This SDK Does Not Do
+
+The SDK does not provide asset movement, exchange, staking, reward, or claim
+flows. It does not provide financial guarantees, rankings, or promotional
 claims.
+
+## Versioning
+
+`@zodiacs/sdk` follows semver. The canonical registry has its own version field
+inside `ZODIACS_REGISTRY` and `packages/sdk/registry/zodiacs.registry.json`.
+
+## Contributing
+
+Keep changes app-neutral and read-only. Registry changes should preserve the
+model that Solana SPL mints are the native originals and Base ERC-20 addresses
+are official bridged representations.

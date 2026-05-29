@@ -2,6 +2,12 @@ export { createDexScreenerMarketAdapter } from "./dex-screener.js";
 export { createJupiterMarketAdapter } from "./jupiter.js";
 export { createPlaceholderMarketAdapter } from "./placeholder.js";
 export { readMarketSafely } from "./safe-read.js";
+export {
+  getBaseZodiacMarket,
+  getSolanaZodiacMarket,
+  getZodiacMarket,
+  getZodiacMarketByRepresentation
+} from "./representation.js";
 export { unavailableMarketData } from "./unavailable.js";
 export type {
   MarketDataAdapter,

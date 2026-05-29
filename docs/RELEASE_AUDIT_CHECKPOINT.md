@@ -1,45 +1,60 @@
-# Zodiacs SDK v0.1.0 Release Audit Checkpoint
+# Zodiacs SDK Release Audit Checkpoint
 
-This checkpoint documents the local state expected before the v0.1.0 release audit.
+This checkpoint documents the current public repository state for the Zodiacs
+SDK canonical registry and read-only integration layer.
 
 ## Package Structure
 
 - `@zodiacs/sdk` in `packages/sdk`
-- `zodiacs-sdk-nextjs-example` in `examples/nextjs`
+- machine-readable registry artifact at `packages/sdk/registry/zodiacs.registry.json`
+- generic Next.js integration example in `examples/nextjs`
 
 The workspace is managed with pnpm through `pnpm-workspace.yaml`.
 
 ## Implemented Features
 
-- Typed registry for the twelve Zodiacs.org cultural assets.
-- Metadata helpers for symbolic identity, ownership surfaces, and display copy.
-- Read-only Solana balance helpers for SPL token accounts by wallet owner and mint.
+- Official Zodiacs.org registry with exactly twelve assets.
+- Native Solana SPL representation for every sign, using the existing Solana mint registry.
+- Official bridged Base ERC-20 representation for every sign.
+- Address verification helpers for Solana mints and Base ERC-20 addresses.
+- Bridge provenance helpers that point Base representations back to Solana origins.
+- Read-only Solana balance helpers and explicit Solana aliases.
+- Read-only Base balance helpers using `viem` `PublicClient` only.
+- Cross-chain ownership and public shelf helpers.
+- Identity composition helpers for held signs, element mix, modality mix, wheel state, and receipt data.
+- React hooks and UI components for registry verification, ownership, and identity surfaces.
 - Optional market context adapters for DEX Screener, Jupiter, and placeholder data.
-- React provider and hooks for token metadata, read-only balances, and market context.
-- HTML-based React UI components for asset cards, ownership state, market context, and a twelve-asset panel.
-- Minimal Next.js example app for read-only balance lookup and UI composition.
 
-## Solana Balance Behavior
+## Registry Behavior
 
-- Balance reads use public wallet addresses and token mint addresses.
-- `getZodiacBalance` queries parsed token accounts by owner and mint, then sums all matching token accounts.
-- Missing token accounts return a zero balance.
-- RPC or malformed-response failures return a typed unavailable balance.
-- Invalid wallet addresses, invalid zodiac signs, invalid mint addresses, invalid RPC endpoints, or invalid connection objects throw typed validation errors before RPC reads.
-- `ZodiacsProvider` can use `rpcUrl` to create a first-party read-only balance reader, or accept a custom `balanceReader` override.
+- The sign is the asset identity.
+- Solana SPL mints are native canonical origins.
+- Base ERC-20 addresses are official bridged representations.
+- Base representations are not independent originals.
+- Every Base representation includes Wormhole / Symbiosis bridge metadata and an `originAddress` matching the native Solana mint.
+- Unknown addresses return `false` or `null`; assertion helpers throw typed errors.
+- EVM lookup is case-insensitive.
+
+## Read Behavior
+
+- Solana reads use public wallet addresses and token mint addresses.
+- Base reads use `PublicClient.readContract` for ERC-20 `balanceOf` and `decimals`.
+- Read failures return typed unavailable states per token.
+- Cross-chain helpers expose per-chain holdings before any unified shelf view.
+- Large Base raw balances are formatted through string/bigint-safe helpers.
 
 ## Market Adapter Behavior
 
 - Market data is optional display context.
 - Placeholder market data returns an unavailable snapshot by design.
 - DEX Screener and Jupiter adapters return normalized snapshots when usable data is available.
-- The default Jupiter adapter uses Jupiter Price API V3 through `https://lite-api.jup.ag/price/v3`; DEX Screener and Jupiter endpoints are overridable through adapter config.
+- The default Jupiter adapter uses Jupiter Price API V3 through `https://lite-api.jup.ag/price/v3`.
+- DEX Screener and Jupiter endpoints are overridable through adapter config.
 - Network failures, non-OK HTTP responses, JSON parse failures, missing markets, and malformed payloads return unavailable snapshots.
-- Ordinary network, API, and data failures should not throw from adapters.
 
 ## Environment Variables
 
-- `NEXT_PUBLIC_SOLANA_RPC_URL` enables read-only Solana balance lookup in the Next.js example.
+- `NEXT_PUBLIC_SOLANA_RPC_URL` enables read-only Solana balance lookup in the generic Next.js example.
 - The SDK does not require private keys or secret environment variables.
 - No `.env` file should be included in a source release.
 
@@ -63,18 +78,22 @@ Run package dry-runs from `packages/sdk`.
 
 ## Known Limitations
 
-- The SDK does not execute transactions.
 - Market context is optional and may be unavailable.
-- Balance reads depend on the configured Solana RPC endpoint.
+- Balance reads depend on the configured Solana RPC endpoint or Base RPC transport.
 - Public RPC endpoints may rate-limit or return transient failures.
+- Mint and bridge address changes must be handled as explicit registry updates with tests.
 - The temporary audit repository is `https://github.com/diasmal917/zodiacs-sdk`; the intended final public repository is `https://github.com/zodiacs-org/sdk`.
 
 ## Read-Only And Security Posture
 
-The v0.1.0 SDK is read-only. It does not include signing, swaps, trading, custody, private keys, keypair generation, buy buttons, sell buttons, or transaction submission. It is built around cultural assets, symbolic identity, ownership, market context, scarcity, and symbolic endurance.
+The SDK is read-only. It does not request private keys, sign messages, connect
+wallets, submit transactions, provide custody, provide transaction approval
+helpers, or provide asset movement helpers. It is built around official
+registry verification, cultural assets, symbolic identity, public ownership
+state, market context, scarcity, and symbolic endurance.
 
 ## Recommended Next Audit Prompt
 
 ```text
-Audit the Zodiacs SDK for v0.1.0 release readiness. Confirm package exports, TypeScript declarations, ESM compatibility, build output, tests, React hooks, market adapter fault tolerance, Solana read-only balance behavior, example setup, README accuracy, npm publishing readiness, no private keys, no signing, no swaps or trading, no custody, no buy or sell buttons, no financial-promotional claims, and premium Zodiacs.org tone. Return blockers, non-blocking improvements, exact files needing changes, and a release readiness score.
+Audit the Zodiacs SDK for release readiness. Confirm canonical registry integrity, Solana native representations, Base bridged representations, address verification helpers, TypeScript declarations, ESM compatibility, build output, tests, React hooks, Base and Solana read-only balance logic, README accuracy, npm publishing readiness, no private keys, no signing, no swaps or trading, no custody, no transaction submission, no approval helpers, no financial-promotional claims, app-neutral language, and premium Zodiacs.org tone. Return blockers, non-blocking improvements, exact files needing changes, and a release readiness score.
 ```

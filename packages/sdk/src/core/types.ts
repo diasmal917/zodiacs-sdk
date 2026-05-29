@@ -19,6 +19,72 @@ export type ZodiacElement = "fire" | "earth" | "air" | "water";
 
 export type ZodiacModality = "cardinal" | "fixed" | "mutable";
 
+export type ZodiacChain = "solana" | "base";
+
+export type ZodiacRepresentationKind = "native" | "bridged";
+
+export type ZodiacTokenStandard = "SPL" | "ERC20";
+
+export interface ZodiacBridgeMetadata {
+  readonly status: "official-bridged";
+  readonly protocol?: "wormhole";
+  readonly routeProvider?: "symbiosis";
+  readonly sourceChain: "solana";
+  readonly destinationChain: "base";
+  readonly notes?: string;
+}
+
+export interface ZodiacRepresentation {
+  readonly sign: ZodiacSign;
+  readonly chain: ZodiacChain;
+  readonly chainId?: number;
+  readonly kind: ZodiacRepresentationKind;
+  readonly tokenStandard: ZodiacTokenStandard;
+  readonly address: string;
+  readonly decimals?: number;
+  readonly symbol?: string;
+  readonly name?: string;
+  readonly isCanonicalOrigin: boolean;
+  readonly isOfficialRepresentation: boolean;
+  readonly originChain?: "solana";
+  readonly originAddress?: string;
+  readonly bridge?: ZodiacBridgeMetadata;
+}
+
+export interface ZodiacAssetMetadata {
+  readonly element: ZodiacElement;
+  readonly modality: ZodiacModality;
+  readonly rulingPlanet: string;
+  readonly archetype: string;
+  readonly dateRange: string;
+  readonly shortBio?: string;
+}
+
+export interface ZodiacAsset {
+  readonly sign: ZodiacSign;
+  readonly displayName: string;
+  readonly metadata: ZodiacAssetMetadata;
+  readonly native: ZodiacRepresentation;
+  readonly representations: readonly ZodiacRepresentation[];
+}
+
+export interface ZodiacsSupportedChain {
+  readonly chain: ZodiacChain;
+  readonly chainId?: number;
+  readonly kind: ZodiacRepresentationKind;
+  readonly tokenStandard: ZodiacTokenStandard;
+}
+
+export interface ZodiacsRegistry {
+  readonly name: "Zodiacs Official Registry";
+  readonly source: "https://zodiacs.org";
+  readonly sdk: "@zodiacs/sdk";
+  readonly version: string;
+  readonly nativeChain: "solana";
+  readonly supportedChains: readonly ZodiacsSupportedChain[];
+  readonly assets: readonly ZodiacAsset[];
+}
+
 export interface ZodiacMarketLinks {
   readonly dexScreener: string;
   readonly jupiter: string;
@@ -113,6 +179,10 @@ export interface ZodiacBalanceError {
 export interface ZodiacBalance {
   readonly sign: ZodiacSign;
   readonly token: ZodiacToken;
+  readonly representation: ZodiacRepresentation;
+  readonly chain: "solana";
+  readonly kind: "native";
+  readonly tokenStandard: "SPL";
   readonly walletAddress: string;
   readonly mintAddress: string;
   readonly rawAmount: string;
@@ -134,6 +204,7 @@ export type ZodiacsOwnershipStatus = "available" | "partial" | "unavailable";
 
 export interface ZodiacsOwnership {
   readonly walletAddress: string;
+  readonly chain?: "solana";
   readonly status: ZodiacsOwnershipStatus;
   readonly holdings: readonly ZodiacsHolding[];
   readonly heldSigns: readonly ZodiacSign[];
@@ -171,3 +242,61 @@ export interface ReadZodiacsBalancesOptions {
   readonly reader: ReadonlyZodiacBalanceReader;
   readonly registry?: ZodiacTokenRegistry;
 }
+
+export interface ZodiacSerializableError {
+  readonly code: string;
+  readonly message: string;
+}
+
+export interface BaseZodiacBalance {
+  readonly sign: ZodiacSign;
+  readonly ownerAddress: string;
+  readonly representation: ZodiacRepresentation;
+  readonly chain: "base";
+  readonly kind: "bridged";
+  readonly tokenStandard: "ERC20";
+  readonly rawAmount: string;
+  readonly uiAmountString: string;
+  readonly decimals: number;
+  readonly status: ZodiacBalanceReadStatus;
+  readonly error?: ZodiacSerializableError;
+}
+
+export interface BaseZodiacsHolding {
+  readonly sign: ZodiacSign;
+  readonly representation: ZodiacRepresentation;
+  readonly balance: BaseZodiacBalance;
+  readonly held: boolean;
+}
+
+export interface BaseZodiacsOwnership {
+  readonly ownerAddress: string;
+  readonly chain: "base";
+  readonly status: ZodiacsOwnershipStatus;
+  readonly holdings: readonly BaseZodiacsHolding[];
+  readonly heldSigns: readonly ZodiacSign[];
+  readonly totalHeld: number;
+  readonly errors: readonly ZodiacSerializableError[];
+}
+
+export interface CrossChainZodiacsOwnership {
+  readonly solana?: ZodiacsOwnership;
+  readonly base?: BaseZodiacsOwnership;
+}
+
+export interface UnifiedZodiacShelfItem {
+  readonly sign: ZodiacSign;
+  readonly held: boolean;
+  readonly nativeHeld: boolean;
+  readonly bridgedHeld: boolean;
+  readonly representations: readonly ZodiacRepresentation[];
+}
+
+export interface UnifiedZodiacShelf {
+  readonly label: "combined wallet holdings across official representations";
+  readonly items: readonly UnifiedZodiacShelfItem[];
+  readonly heldSigns: readonly ZodiacSign[];
+  readonly totalHeld: number;
+}
+
+export type ZodiacComposition = Record<ZodiacElement | ZodiacModality, number>;

@@ -1,12 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
+import type { PublicClient } from "viem";
 import {
+  getBaseZodiacBalance,
+  getBaseZodiacsOwnership,
+  getRepresentationByAddress,
+  getSolanaZodiacsOwnership,
+  getZodiacAsset,
   getZodiacMetadata,
   getZodiacToken,
+  getZodiacsRegistry,
+  isOfficialZodiacAddress,
   readZodiacBalance,
+  type BaseZodiacBalance,
+  type BaseZodiacsOwnership,
+  type ConnectionOrRpcUrl,
+  type ZodiacsOwnership,
+  type ZodiacAddressLookupOptions,
+  type ZodiacAsset,
   type ZodiacBalanceResult,
   type ZodiacMetadata,
+  type ZodiacRepresentation,
   type ZodiacSign,
-  type ZodiacToken
+  type ZodiacToken,
+  type ZodiacsRegistry
 } from "../core/index.js";
 import {
   readMarketSafely,
@@ -30,6 +46,28 @@ export interface AsyncHookState<T> {
 
 export interface UseZodiacMarketOptions {
   readonly enabled?: boolean;
+}
+
+export function useZodiacsRegistry(): ZodiacsRegistry {
+  return getZodiacsRegistry();
+}
+
+export function useOfficialZodiacToken(sign: ZodiacSign): ZodiacAsset {
+  return useMemo(() => getZodiacAsset(sign), [sign]);
+}
+
+export function useIsOfficialZodiacAddress(
+  address: string | null | undefined,
+  options: ZodiacAddressLookupOptions = {}
+): boolean {
+  return useMemo(() => (address ? isOfficialZodiacAddress(address, options) : false), [address, options]);
+}
+
+export function useZodiacRepresentation(
+  address: string | null | undefined,
+  options: ZodiacAddressLookupOptions = {}
+): ZodiacRepresentation | null {
+  return useMemo(() => (address ? getRepresentationByAddress(address, options) : null), [address, options]);
 }
 
 export function useZodiacToken(sign: ZodiacSign): UseZodiacTokenResult {
@@ -160,6 +198,94 @@ export function useZodiacMarket(
   return state;
 }
 
+export function useBaseZodiacBalance(
+  publicClient: PublicClient | null | undefined,
+  ownerAddress: string | null | undefined,
+  sign: ZodiacSign
+): AsyncHookState<BaseZodiacBalance> {
+  const [state, setState] = useState<AsyncHookState<BaseZodiacBalance>>({
+    data: null,
+    error: null,
+    loading: false
+  });
+
+  useEffect(() => {
+    if (!publicClient || !ownerAddress?.trim()) {
+      setState({ data: null, error: null, loading: false });
+      return;
+    }
+
+    let cancelled = false;
+    setState((current) => ({ ...current, error: null, loading: true }));
+
+    getBaseZodiacBalance(publicClient, ownerAddress, sign)
+      .then((data) => {
+        if (!cancelled) {
+          const error = data.status === "unavailable" ? new Error(data.error?.message ?? "Base balance unavailable.") : null;
+          setState({ data, error, loading: false });
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setState({
+            data: null,
+            error: error instanceof Error ? error : new Error("Base balance request failed."),
+            loading: false
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerAddress, publicClient, sign]);
+
+  return state;
+}
+
+export function useBaseZodiacsOwnership(
+  publicClient: PublicClient | null | undefined,
+  ownerAddress: string | null | undefined
+): AsyncHookState<BaseZodiacsOwnership> {
+  return useAsyncOwnership(publicClient && ownerAddress?.trim()
+    ? () => getBaseZodiacsOwnership(publicClient, ownerAddress)
+    : null, [ownerAddress, publicClient]);
+}
+
+export function useSolanaZodiacsOwnership(
+  connection: ConnectionOrRpcUrl | null | undefined,
+  ownerAddress: string | null | undefined
+): AsyncHookState<ZodiacsOwnership> {
+  return useAsyncOwnership(connection && ownerAddress?.trim()
+    ? () => getSolanaZodiacsOwnership(connection, ownerAddress)
+    : null, [connection, ownerAddress]);
+}
+
+export function useCrossChainZodiacsOwnership(params: {
+  readonly solana?: { readonly connection: ConnectionOrRpcUrl; readonly ownerAddress: string };
+  readonly base?: { readonly publicClient: PublicClient; readonly ownerAddress: string };
+}): AsyncHookState<{ readonly solana?: ZodiacsOwnership; readonly base?: BaseZodiacsOwnership }> {
+  const enabled = Boolean(params.solana || params.base);
+
+  return useAsyncOwnership(enabled
+    ? async () => {
+        const [solana, base] = await Promise.all([
+          params.solana
+            ? getSolanaZodiacsOwnership(params.solana.connection, params.solana.ownerAddress)
+            : Promise.resolve(undefined),
+          params.base
+            ? getBaseZodiacsOwnership(params.base.publicClient, params.base.ownerAddress)
+            : Promise.resolve(undefined)
+        ]);
+
+        return {
+          ...(solana ? { solana } : {}),
+          ...(base ? { base } : {})
+        };
+      }
+    : null, [params]);
+}
+
 function unavailableZodiacBalanceResult(
   sign: ZodiacSign,
   token: ZodiacToken,
@@ -172,4 +298,47 @@ function unavailableZodiacBalanceResult(
     status: "unavailable",
     reason
   };
+}
+
+function useAsyncOwnership<T>(
+  loader: (() => Promise<T>) | null,
+  deps: readonly unknown[]
+): AsyncHookState<T> {
+  const [state, setState] = useState<AsyncHookState<T>>({
+    data: null,
+    error: null,
+    loading: false
+  });
+
+  useEffect(() => {
+    if (!loader) {
+      setState({ data: null, error: null, loading: false });
+      return;
+    }
+
+    let cancelled = false;
+    setState((current) => ({ ...current, error: null, loading: true }));
+
+    loader()
+      .then((data) => {
+        if (!cancelled) {
+          setState({ data, error: null, loading: false });
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setState({
+            data: null,
+            error: error instanceof Error ? error : new Error("Zodiacs ownership request failed."),
+            loading: false
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, deps);
+
+  return state;
 }

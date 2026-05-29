@@ -1,27 +1,32 @@
 {
   "name": "@zodiacs/sdk",
-  "version": "0.1.0",
-  "description": "Read-only TypeScript SDK for Zodiacs.org cultural assets, symbolic identity, ownership, and market context.",
+  "version": "0.2.0",
+  "description": "Official read-only TypeScript SDK for the canonical Zodiacs.org registry, native Solana Zodiacs assets, and official bridged Base representations.",
   "license": "MIT",
   "keywords": [
     "zodiacs",
+    "zodiacs-org",
     "sdk",
-    "cultural-assets",
-    "symbolic-identity",
-    "ownership",
-    "market-context",
     "solana",
+    "spl",
+    "base",
+    "bridged-assets",
+    "wormhole",
+    "symbiosis",
+    "canonical-registry",
+    "cultural-assets",
+    "identity",
     "react",
     "typescript",
     "read-only"
   ],
   "homepage": "https://zodiacs.org/sdk",
   "bugs": {
-    "url": "https://github.com/zodiacs-org/sdk/issues"
+    "url": "https://github.com/diasmal917/zodiacs-sdk/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zodiacs-org/sdk.git"
+    "url": "git+https://github.com/diasmal917/zodiacs-sdk.git"
   },
   "type": "module",
   "sideEffects": false,
@@ -31,12 +36,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./registry/zodiacs.registry.json": {
+      "default": "./registry/zodiacs.registry.json"
     }
   },
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "registry"
   ],
   "engines": {
     "node": ">=18"
@@ -45,12 +54,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.build.json --external react --external react/jsx-runtime --external @solana/web3.js",
+    "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.build.json --external react --external react/jsx-runtime --external @solana/web3.js --external viem",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run src/**/*.test.ts src/**/*.test.tsx"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.98.0"
+    "@solana/web3.js": "^1.98.0",
+    "viem": "^2.23.0"
   },
   "peerDependencies": {
     "react": ">=18.2.0"

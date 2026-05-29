@@ -14,6 +14,7 @@ import {
   type ZodiacSign
 } from "./types.js";
 import { getZodiacToken } from "./registry.js";
+import { getSolanaZodiacRepresentation } from "./official-registry.js";
 import { rawAmountToNumber } from "./format.js";
 import { ZodiacsValidationError } from "./errors.js";
 
@@ -94,6 +95,10 @@ export async function getZodiacBalance(
     return {
       sign,
       token,
+      representation: getSolanaZodiacRepresentation(sign),
+      chain: "solana",
+      kind: "native",
+      tokenStandard: "SPL",
       walletAddress,
       mintAddress: token.mintAddress,
       rawAmount: amount.rawAmount,
@@ -131,6 +136,7 @@ export async function getZodiacsOwnership(
 
   return {
     walletAddress,
+    chain: "solana",
     status: getZodiacsOwnershipStatus(balances),
     holdings,
     heldSigns,
@@ -138,6 +144,20 @@ export async function getZodiacsOwnership(
     errors
   };
 }
+
+export const getSolanaZodiacBalance = getZodiacBalance;
+
+export async function getSolanaZodiacBalances(
+  connectionOrRpcUrl: ConnectionOrRpcUrl,
+  walletAddress: string
+): Promise<readonly ZodiacBalance[]> {
+  const connection = createSolanaConnection(connectionOrRpcUrl);
+  return Promise.all(ZODIAC_SIGNS.map((sign) => getZodiacBalance(connection, walletAddress, sign)));
+}
+
+export const getSolanaZodiacsOwnership = getZodiacsOwnership;
+
+export const getSolanaHeldZodiacs = getHeldZodiacs;
 
 export async function getHeldZodiacs(
   connectionOrRpcUrl: ConnectionOrRpcUrl,
@@ -212,6 +232,10 @@ function unavailableBalance(sign: ZodiacSign, walletAddress: string, message: st
   return {
     sign,
     token,
+    representation: getSolanaZodiacRepresentation(sign),
+    chain: "solana",
+    kind: "native",
+    tokenStandard: "SPL",
     walletAddress,
     mintAddress: token.mintAddress,
     rawAmount: "0",

@@ -2,7 +2,7 @@
 
 You are building the Zodiacs SDK for Zodiacs.org.
 
-The SDK is a premium cultural asset integration layer for the twelve Zodiacs Solana tokens. Keep the SDK restrained, durable, and institutional.
+The SDK is the official read-only integration layer for the canonical Zodiacs.org registry. Solana SPL mints are native origins, and Base ERC-20 addresses are official bridged representations. Keep the SDK restrained, durable, and institutional.
 
 Rules:
 - TypeScript only.
@@ -11,8 +11,9 @@ Rules:
 - Build packages with tsup.
 - Test with Vitest.
 - No private keys.
-- No wallet signing in the MVP.
-- No swap or trade execution.
+- No wallet signing.
+- No transaction submission.
+- No asset movement helpers.
 - Market data is optional and must fail safely.
 - Important UI text must be real HTML, not baked into images.
 

@@ -5,6 +5,14 @@ export {
   type ZodiacsProviderProps
 } from "./context.js";
 export {
+  useBaseZodiacBalance,
+  useBaseZodiacsOwnership,
+  useCrossChainZodiacsOwnership,
+  useIsOfficialZodiacAddress,
+  useOfficialZodiacToken,
+  useSolanaZodiacsOwnership,
+  useZodiacRepresentation,
+  useZodiacsRegistry,
   useZodiacBalance,
   useZodiacMarket,
   useZodiacToken,
