@@ -10,9 +10,11 @@ import {
 import { createPlaceholderMarketAdapter } from "../market/index.js";
 import type { ZodiacsContextValue } from "./context.js";
 import type { AsyncHookState } from "./hooks.js";
+import type { PublicClient } from "viem";
 
 const mockState = vi.hoisted(() => ({
   contextValue: null as ZodiacsContextValue | null,
+  latestEffectDeps: null as readonly unknown[] | undefined | null,
   latestHookState: null as AsyncHookState<ZodiacBalanceResult> | null
 }));
 
@@ -21,7 +23,8 @@ vi.mock("react", async () => {
 
   return {
     ...actual,
-    useEffect: (effect: () => void | (() => void)) => {
+    useEffect: (effect: () => void | (() => void), deps?: readonly unknown[]) => {
+      mockState.latestEffectDeps = deps;
       effect();
     },
     useMemo: (factory: () => unknown) => factory(),
@@ -57,6 +60,7 @@ const walletAddress = "CWKQJJYec89wcx871C8vmyTPc3jhsdoAYs5aGffUtELJ";
 
 beforeEach(() => {
   mockState.contextValue = createMockContext();
+  mockState.latestEffectDeps = null;
   mockState.latestHookState = null;
 });
 
@@ -164,5 +168,22 @@ describe("useZodiacBalance", () => {
       reason: "RPC unavailable",
       status: "unavailable"
     });
+  });
+
+  it("uses stable dependency values for cross-chain ownership params", async () => {
+    const connection: SolanaBalanceConnection = {
+      getParsedTokenAccountsByOwner: vi.fn(async () => ({ value: [] }))
+    };
+    const publicClient = { readContract: vi.fn() } as unknown as PublicClient;
+    const params = {
+      solana: { connection, ownerAddress: " " },
+      base: { publicClient, ownerAddress: "" }
+    };
+    const { useCrossChainZodiacsOwnership } = await import("./hooks.js");
+
+    useCrossChainZodiacsOwnership(params);
+
+    expect(mockState.latestEffectDeps).toEqual([connection, "", publicClient, ""]);
+    expect(mockState.latestEffectDeps).not.toContain(params);
   });
 });

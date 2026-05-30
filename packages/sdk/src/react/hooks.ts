@@ -265,16 +265,23 @@ export function useCrossChainZodiacsOwnership(params: {
   readonly solana?: { readonly connection: ConnectionOrRpcUrl; readonly ownerAddress: string };
   readonly base?: { readonly publicClient: PublicClient; readonly ownerAddress: string };
 }): AsyncHookState<{ readonly solana?: ZodiacsOwnership; readonly base?: BaseZodiacsOwnership }> {
-  const enabled = Boolean(params.solana || params.base);
+  const solanaConnection = params.solana?.connection ?? null;
+  const solanaOwnerAddress = params.solana?.ownerAddress.trim() ?? "";
+  const basePublicClient = params.base?.publicClient ?? null;
+  const baseOwnerAddress = params.base?.ownerAddress.trim() ?? "";
+  const enabled = Boolean(
+    (solanaConnection && solanaOwnerAddress) ||
+    (basePublicClient && baseOwnerAddress)
+  );
 
   return useAsyncOwnership(enabled
     ? async () => {
         const [solana, base] = await Promise.all([
-          params.solana
-            ? getSolanaZodiacsOwnership(params.solana.connection, params.solana.ownerAddress)
+          solanaConnection && solanaOwnerAddress
+            ? getSolanaZodiacsOwnership(solanaConnection, solanaOwnerAddress)
             : Promise.resolve(undefined),
-          params.base
-            ? getBaseZodiacsOwnership(params.base.publicClient, params.base.ownerAddress)
+          basePublicClient && baseOwnerAddress
+            ? getBaseZodiacsOwnership(basePublicClient, baseOwnerAddress)
             : Promise.resolve(undefined)
         ]);
 
@@ -283,7 +290,7 @@ export function useCrossChainZodiacsOwnership(params: {
           ...(base ? { base } : {})
         };
       }
-    : null, [params]);
+    : null, [solanaConnection, solanaOwnerAddress, basePublicClient, baseOwnerAddress]);
 }
 
 function unavailableZodiacBalanceResult(
